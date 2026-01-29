@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETA IEEE Device Number Study Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom right, #eff6ff, #e0e7ff);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .custom-list-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .custom-list-header {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .range-input {
+            width: 70px;
+            padding: 8px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .range-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .range-label {
+            color: #6b7280;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .shuffle-btn {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .shuffle-btn:hover {
+            background: #4338ca;
+        }
+
+        .filter-btn {
+            background: #0891b2;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background: #0e7490;
+        }
+
+        .filter-btn.active {
+            background: #065f46;
+        }
+
+        .device-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .device-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .choice {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .choice:hover:not(.disabled) {
+            border-color: #4f46e5;
+            background: #f9fafb;
+        }
+
+        .choice.selected {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+
+        .choice.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .choice.incorrect {
+            border-color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .choice.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .choice input[type="radio"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .choice.disabled input[type="radio"] {
+            cursor: not-allowed;
+        }
+
+        .choice-label {
+            font-size: 16px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .choice.disabled .choice-label {
+            cursor: not-allowed;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .reveal-btn {
+            padding: 8px 16px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reveal-btn:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        .reveal-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .info-btn {
+            padding: 8px 12px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .info-btn:hover {
+            background: #7c3aed;
+        }
+
+        .description {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f3f4f6;
+            border-left: 4px solid #8b5cf6;
+            border-radius: 4px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .feedback {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .feedback.correct {
+            background: #d1fae5;
+            border: 2px solid #6ee7b7;
+            color: #065f46;
+        }
+
+        .feedback.incorrect {
+            background: #fee2e2;
+            border: 2px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        .icon {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+        }
+
+        .grade-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .grade-btn {
+            padding: 12px 24px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .grade-btn:hover:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        .grade-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .score-display {
+            margin-top: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .score-percentage {
+            font-size: 18px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        #customList {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        #customList:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NETA IEEE Device Number Study Tool</h1>
+            <p class="subtitle">Practice IEEE device numbers for NETA certification testing - Multiple Choice Format.</p>
+            <div class="button-group">
+                <button class="btn shuffle-btn" onclick="orderDevices()">
+                    Devices in Order
+                </button>
+                <button class="btn shuffle-btn" onclick="shuffleDevices()">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Shuffle & Reset
+                </button>
+                <div class="range-group">
+                    <span class="range-label">Range:</span>
+                    <input type="number" id="rangeStart" class="range-input" placeholder="From" min="1" max="94">
+                    <span class="range-label">to</span>
+                    <input type="number" id="rangeEnd" class="range-input" placeholder="To" min="1" max="94">
+                    <button class="btn filter-btn" onclick="setRangeFilter()">
+                        Apply Range
+                    </button>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn filter-btn active" id="filterAll" onclick="setFilter('all')">
+                    Most Common Devices (30)
+                </button>
+                <button class="btn filter-btn" id="filter1" onclick="setFilter('common1')">
+                    Most Common Subset 1 (13)
+                </button>
+                <button class="btn filter-btn" id="filter2" onclick="setFilter('common2')">
+                    Most Common Subset 2 (14)
+                </button>
+                <button class="btn filter-btn" id="filterAllIEEE" onclick="setFilter('allIEEE')">
+                    All Devices (94)
+                </button>
+            </div>
+            <div class="custom-list-row">
+                <div class="custom-list-header">
+                    <button class="btn filter-btn" onclick="setCustomListFilter()">
+                        Apply List
+                    </button>
+                    <span class="range-label">Custom List:</span>
+                </div>
+                <input type="text" id="customList">
+            </div>
+        </div>
+
+        <div id="devices-container"></div>
+
+        <div class="grade-container">
+            <button class="grade-btn" id="gradeBtn" onclick="gradeAll()">Grade All Answers</button>
+            <div id="scoreDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        const mostCommonDevices = [
+            { number: '2', name: 'Time Delay Starting or Closing Relay', description: 'Provides a time delay for starting or closing operations, ensuring proper sequencing and preventing simultaneous operations that could damage equipment.' },
+            { number: '3', name: 'Checking or Interlocking Relay', description: 'Verifies proper operating conditions before allowing equipment to start or operate, preventing unsafe or improper operations through interlocking logic.' },
+            { number: '21', name: 'Distance Relay', description: 'Measures impedance between the relay location and a fault point to provide protection for transmission lines. Operates when impedance falls below a set value, indicating a fault within the protected zone.' },
+            { number: '25', name: 'Synchronizing or Synchronism-Check Relay', description: 'Ensures that two AC sources are synchronized (matching voltage, frequency, and phase angle) before connecting them together, preventing damage from out-of-sync connections.' },
+            { number: '27', name: 'Undervoltage Relay', description: 'Detects when voltage drops below a preset level and initiates protective action, preventing equipment damage from operating at insufficient voltage levels.' },
+            { number: '32', name: 'Directional Power Relay', description: 'Senses the direction of power flow and operates when power flows in the wrong direction, protecting against backfeed conditions or motoring of generators.' },
+            { number: '37', name: 'Undercurrent or Underpower Relay', description: 'Monitors current or power levels and operates when they fall below a predetermined value, often used to detect loss of load or field failure conditions.' },
+            { number: '40', name: 'Field Relay', description: 'Provides protection for generator or motor field circuits, monitoring field current and voltage to prevent damage from loss of field or field ground faults.' },
+            { number: '46', name: 'Reverse-Phase or Phase-Balance Current Relay', description: 'Detects negative-sequence currents caused by unbalanced loads or phase reversals, protecting motors and generators from damage due to unbalanced conditions.' },
+            { number: '47', name: 'Phase-Sequence or Phase-Balance Voltage Relay', description: 'Monitors voltage phase sequence and balance, ensuring correct phase rotation and detecting voltage unbalance that could damage three-phase equipment.' },
+            { number: '48', name: 'Incomplete Sequence Relay', description: 'Ensures that a sequence of operations is completed properly, preventing equipment damage from incomplete starting, stopping, or switching sequences.' },
+            { number: '49', name: 'Machine or Transformer Thermal Relay', description: 'Monitors temperature or thermal conditions in machines and transformers, operating when thermal limits are exceeded to prevent overheating damage.' },
+            { number: '50', name: 'Instantaneous Overcurrent Relay', description: 'Provides fast overcurrent protection with no intentional time delay, operating immediately when current exceeds the pickup setting, typically used for fault protection.' },
+            { number: '51', name: 'AC Time Overcurrent Relay', description: 'Provides time-delayed overcurrent protection with inverse, definite, or very inverse time characteristics, allowing coordination with other protective devices.' },
+            { number: '52', name: 'AC Circuit Breaker', description: 'A switching device capable of interrupting fault currents and making/breaking normal load currents. The main switching and interrupting device in power systems.' },
+            { number: '59', name: 'Overvoltage Relay', description: 'Detects when voltage exceeds a preset level and initiates protective action, preventing insulation damage and equipment failure from overvoltage conditions.' },
+            { number: '60', name: 'Voltage or Current Balance Relay', description: 'Monitors balance between voltages or currents in multi-phase or multi-circuit systems, detecting unbalanced conditions that could indicate faults or improper operation.' },
+            { number: '62', name: 'Time-Delay Stopping or Opening Relay', description: 'Provides a time delay for stopping or opening operations, ensuring proper shutdown sequences and preventing rapid cycling of equipment.' },
+            { number: '63', name: 'Pressure Switch', description: 'Monitors pressure in systems such as transformers, gas systems, or lubrication systems, operating when pressure exceeds or falls below safe limits.' },
+            { number: '64', name: 'Ground Detector Relay', description: 'Detects ground faults in ungrounded or high-resistance grounded systems, alerting operators to insulation failures before they develop into phase-to-phase faults.' },
+            { number: '67', name: 'AC Directional Overcurrent Relay', description: 'Combines overcurrent protection with directional sensing, operating only when current flows in a specific direction, essential for protecting looped or parallel systems.' },
+            { number: '68', name: 'Blocking Relay', description: 'Prevents or blocks the operation of other devices or functions under certain conditions, often used in pilot protection schemes to prevent incorrect tripping.' },
+            { number: '74', name: 'Alarm Relay', description: 'Initiates alarm signals or indicates abnormal conditions to alert operators, typically used for non-critical conditions requiring attention but not immediate shutdown.' },
+            { number: '78', name: 'Phase-Angle Measuring or Out-of-Step Relay', description: 'Measures phase angle between voltages or detects out-of-step conditions in generators and motors, preventing damage from loss of synchronism.' },
+            { number: '79', name: 'AC Reclosing Relay', description: 'Automatically recloses circuit breakers after a fault trip, useful for clearing temporary faults while preventing extended outages for permanent faults.' },
+            { number: '81', name: 'Frequency Relay', description: 'Monitors system frequency and operates when frequency deviates beyond preset limits, protecting against underfrequency or overfrequency conditions.' },
+            { number: '85', name: 'Carrier or Pilot-Wire Receiver Relay', description: 'Receives signals from remote locations via carrier or pilot wire, used in communication-based protection schemes for transmission line protection.' },
+            { number: '86', name: 'Lockout Relay', description: 'Manually reset relay that locks out equipment after a trip, preventing automatic reclosure until the fault is investigated and cleared, ensuring personnel safety.' },
+            { number: '87', name: 'Differential Protective Relay', description: 'Compares currents entering and leaving protected equipment (transformer, generator, bus, or line), operating on the difference to detect internal faults with high sensitivity.' },
+            { number: '94', name: 'Tripping or Trip-Free Relay', description: 'Provides a trip-free function allowing a circuit breaker to trip even if the close signal is maintained, ensuring protective devices can interrupt faults regardless of control circuit status.' },
+        ];
+
+        const allIEEEDevices = [
+            { number: '1', name: 'Master Element', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '2', name: 'Time Delay Starting or Closing Relay', description: 'Provides a time delay for starting or closing operations, ensuring proper sequencing and preventing simultaneous operations that could damage equipment.' },
+            { number: '3', name: 'Checking or Interlocking Relay', description: 'Verifies proper operating conditions before allowing equipment to start or operate, preventing unsafe or improper operations through interlocking logic.' },
+            { number: '4', name: 'Master Contactor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '5', name: 'Stopping Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '6', name: 'Starting Circuit Breaker', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '7', name: 'Rate of Change Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '8', name: 'Control Power Disconnecting Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '9', name: 'Reversing Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '10', name: 'Unit Sequence Switch', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '11', name: 'Multifunction Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '12', name: 'Overspeed Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '13', name: 'Synchronous-Speed Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '14', name: 'Underspeed Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '15', name: 'Speed or Frequency Matching Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '16', name: 'Data Communications Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '17', name: 'Shunting or Discharge Switch', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '18', name: 'Accelerating or Decelerating Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '19', name: 'Starting-to-Running Transition Contactor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '20', name: 'Valve', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '21', name: 'Distance Relay', description: 'Measures impedance between the relay location and a fault point to provide protection for transmission lines. Operates when impedance falls below a set value, indicating a fault within the protected zone.' },
+            { number: '22', name: 'Equalizer Circuit Breaker', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '23', name: 'Temperature Control Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '24', name: 'Volts Per Hertz Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '25', name: 'Synchronizing or Synchronism-Check Relay', description: 'Ensures that two AC sources are synchronized (matching voltage, frequency, and phase angle) before connecting them together, preventing damage from out-of-sync connections.' },
+            { number: '26', name: 'Apparatus Thermal Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '27', name: 'Undervoltage Relay', description: 'Detects when voltage drops below a preset level and initiates protective action, preventing equipment damage from operating at insufficient voltage levels.' },
+            { number: '28', name: 'Flame Detector', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '29', name: 'Isolating Contactor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '30', name: 'Annunciator Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '31', name: 'Separate Excitation Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '32', name: 'Directional Power Relay', description: 'Senses the direction of power flow and operates when power flows in the wrong direction, protecting against backfeed conditions or motoring of generators.' },
+            { number: '33', name: 'Position Switch', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '34', name: 'Master Sequence Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '35', name: 'Brush-Operating or Slip-Ring Short-Circuiting Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '36', name: 'Polarity or Polarizing Voltage Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '37', name: 'Undercurrent or Underpower Relay', description: 'Monitors current or power levels and operates when they fall below a predetermined value, often used to detect loss of load or field failure conditions.' },
+            { number: '38', name: 'Bearing Protective Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '39', name: 'Mechanical Condition Monitor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '40', name: 'Field Relay', description: 'Provides protection for generator or motor field circuits, monitoring field current and voltage to prevent damage from loss of field or field ground faults.' },
+            { number: '41', name: 'Field Circuit Breaker', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '42', name: 'Running Circuit Breaker', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '43', name: 'Manual Transfer or Selector Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '44', name: 'Unit Sequence Starting Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '45', name: 'Atmospheric Condition Monitor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '46', name: 'Reverse-Phase or Phase-Balance Current Relay', description: 'Detects negative-sequence currents caused by unbalanced loads or phase reversals, protecting motors and generators from damage due to unbalanced conditions.' },
+            { number: '47', name: 'Phase-Sequence or Phase-Balance Voltage Relay', description: 'Monitors voltage phase sequence and balance, ensuring correct phase rotation and detecting voltage unbalance that could damage three-phase equipment.' },
+            { number: '48', name: 'Incomplete Sequence Relay', description: 'Ensures that a sequence of operations is completed properly, preventing equipment damage from incomplete starting, stopping, or switching sequences.' },
+            { number: '49', name: 'Machine or Transformer Thermal Relay', description: 'Monitors temperature or thermal conditions in machines and transformers, operating when thermal limits are exceeded to prevent overheating damage.' },
+            { number: '50', name: 'Instantaneous Overcurrent Relay', description: 'Provides fast overcurrent protection with no intentional time delay, operating immediately when current exceeds the pickup setting, typically used for fault protection.' },
+            { number: '51', name: 'AC Time Overcurrent Relay', description: 'Provides time-delayed overcurrent protection with inverse, definite, or very inverse time characteristics, allowing coordination with other protective devices.' },
+            { number: '52', name: 'AC Circuit Breaker', description: 'A switching device capable of interrupting fault currents and making/breaking normal load currents. The main switching and interrupting device in power systems.' },
+            { number: '53', name: 'Exciter or DC Generator Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '54', name: 'Turning Gear Engaging Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '55', name: 'Power Factor Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '56', name: 'Field Application Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '57', name: 'Short-Circuiting or Grounding Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '58', name: 'Power Rectifier Misfire Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '59', name: 'Overvoltage Relay', description: 'Detects when voltage exceeds a preset level and initiates protective action, preventing insulation damage and equipment failure from overvoltage conditions.' },
+            { number: '60', name: 'Voltage or Current Balance Relay', description: 'Monitors balance between voltages or currents in multi-phase or multi-circuit systems, detecting unbalanced conditions that could indicate faults or improper operation.' },
+            { number: '61', name: 'Density Switch or Sensor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '62', name: 'Time-Delay Stopping or Opening Relay', description: 'Provides a time delay for stopping or opening operations, ensuring proper shutdown sequences and preventing rapid cycling of equipment.' },
+            { number: '63', name: 'Pressure Switch', description: 'Monitors pressure in systems such as transformers, gas systems, or lubrication systems, operating when pressure exceeds or falls below safe limits.' },
+            { number: '64', name: 'Ground Detector Relay', description: 'Detects ground faults in ungrounded or high-resistance grounded systems, alerting operators to insulation failures before they develop into phase-to-phase faults.' },
+            { number: '65', name: 'Governor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '66', name: 'Notching or Jogging Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '67', name: 'AC Directional Overcurrent Relay', description: 'Combines overcurrent protection with directional sensing, operating only when current flows in a specific direction, essential for protecting looped or parallel systems.' },
+            { number: '68', name: 'Blocking Relay', description: 'Prevents or blocks the operation of other devices or functions under certain conditions, often used in pilot protection schemes to prevent incorrect tripping.' },
+            { number: '69', name: 'Permissive Control Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '70', name: 'Rheostat', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '71', name: 'Level Switch', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '72', name: 'DC Circuit Breaker', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '73', name: 'Load-Resistor Contactor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '74', name: 'Alarm Relay', description: 'Initiates alarm signals or indicates abnormal conditions to alert operators, typically used for non-critical conditions requiring attention but not immediate shutdown.' },
+            { number: '75', name: 'Position Changing Mechanism', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '76', name: 'DC Overcurrent Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '77', name: 'Telemetering Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '78', name: 'Phase-Angle Measuring or Out-of-Step Relay', description: 'Measures phase angle between voltages or detects out-of-step conditions in generators and motors, preventing damage from loss of synchronism.' },
+            { number: '79', name: 'AC Reclosing Relay', description: 'Automatically recloses circuit breakers after a fault trip, useful for clearing temporary faults while preventing extended outages for permanent faults.' },
+            { number: '80', name: 'Liquid or Gas Flow Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '81', name: 'Frequency Relay', description: 'Monitors system frequency and operates when frequency deviates beyond preset limits, protecting against underfrequency or overfrequency conditions.' },
+            { number: '82', name: 'DC Reclosing Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '83', name: 'Automatic Selective Control or Transfer Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '84', name: 'Operating Mechanism', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '85', name: 'Carrier or Pilot-Wire Receiver Relay', description: 'Receives signals from remote locations via carrier or pilot wire, used in communication-based protection schemes for transmission line protection.' },
+            { number: '86', name: 'Lockout Relay', description: 'Manually reset relay that locks out equipment after a trip, preventing automatic reclosure until the fault is investigated and cleared, ensuring personnel safety.' },
+            { number: '87', name: 'Differential Protective Relay', description: 'Compares currents entering and leaving protected equipment (transformer, generator, bus, or line), operating on the difference to detect internal faults with high sensitivity.' },
+            { number: '88', name: 'Auxiliary Motor or Motor Generator', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '89', name: 'Line Switch', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '90', name: 'Regulating Device', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '91', name: 'Voltage Directional Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '92', name: 'Voltage and Power Directional Relay', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '93', name: 'Field-Changing Contactor', description: 'No information on this device available. Please email ravenseyman@gmail.com if you have a relevant suggestion for this device.' },
+            { number: '94', name: 'Tripping or Trip-Free Relay', description: 'Provides a trip-free function allowing a circuit breaker to trip even if the close signal is maintained, ensuring protective devices can interrupt faults regardless of control circuit status.' },
+        ];
+
+        const commonSet1Numbers = ['21', '25', '27', '32', '49', '50', '51', '52', '59', '67', '79', '81', '87'];
+        const commonSet2Numbers = ['21', '25', '27', '32', '37', '47', '50', '51', '52', '59', '67', '81', '86', '87'];
+
+        let currentFilter = 'all';
+        let devices = mostCommonDevices;
+        let shuffledDevices = [];
+        let answers = {};
+        let revealed = {};
+        let descriptionVisible = {};
+        let choices = {};
+        let graded = false;
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function generateChoices(correctNumber, index) {
+            const sourceDevices = currentFilter === 'allIEEE' ? allIEEEDevices : mostCommonDevices;
+            const allNumbers = sourceDevices.map(d => d.number);
+            const wrongNumbers = allNumbers.filter(n => n !== correctNumber);
+            const shuffledWrong = shuffleArray(wrongNumbers);
+            const wrongChoices = shuffledWrong.slice(0, 3);
+            const allChoices = [correctNumber, ...wrongChoices];
+            return shuffleArray(allChoices);
+        }
+
+        function shuffleDevices() {
+            shuffledDevices = shuffleArray(devices);
+            answers = {};
+            revealed = {};
+            descriptionVisible = {};
+            choices = {};
+            graded = false;
+            
+            shuffledDevices.forEach((device) => {
+                choices[device.number] = generateChoices(device.number);
+            });
+            
+            updateRangeDisplay();
+            renderDevices();
+            updateGradeButton();
+        }
+
+        function orderDevices() {
+            shuffledDevices = [...shuffledDevices].sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            renderDevices();
+        }
+
+        function updateRangeDisplay() {
+            if (devices.length > 0) {
+                const numbers = devices.map(d => parseInt(d.number)).sort((a, b) => a - b);
+                document.getElementById('rangeStart').value = numbers[0];
+                document.getElementById('rangeEnd').value = numbers[numbers.length - 1];
+                
+                const deviceNumbers = devices.map(d => d.number).sort((a, b) => parseInt(a) - parseInt(b));
+                document.getElementById('customList').value = deviceNumbers.join(', ');
+            }
+        }
+
+        function handleAnswerChange(deviceNumber, value) {
+            answers[deviceNumber] = value;
+            renderDevices();
+            updateGradeButton();
+        }
+
+        function handleReveal(deviceNumber) {
+            revealed[deviceNumber] = true;
+            renderDevices();
+        }
+
+        function toggleDescription(deviceNumber) {
+            descriptionVisible[deviceNumber] = !descriptionVisible[deviceNumber];
+            renderDevices();
+        }
+
+        function isCorrect(deviceNumber) {
+            return answers[deviceNumber] === deviceNumber;
+        }
+
+        function gradeAll() {
+            shuffledDevices.forEach((device) => {
+                revealed[device.number] = true;
+            });
+            graded = true;
+            
+            let correct = 0;
+            shuffledDevices.forEach((device) => {
+                if (isCorrect(device.number)) {
+                    correct++;
+                }
+            });
+            
+            const total = shuffledDevices.length;
+            const percentage = Math.round((correct / total) * 100);
+            
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            scoreDisplay.innerHTML = `
+                <div class="score-display">Score: ${correct} / ${total}</div>
+                <div class="score-percentage">${percentage}%</div>
+            `;
+            
+            renderDevices();
+            updateGradeButton();
+        }
+
+        function updateGradeButton() {
+            const gradeBtn = document.getElementById('gradeBtn');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            if (!gradeBtn || !scoreDisplay) return;
+            
+            if (graded) {
+                gradeBtn.disabled = true;
+                gradeBtn.textContent = 'Graded';
+            } else {
+                const allAnswered = shuffledDevices.every((device) => answers[device.number]);
+                gradeBtn.disabled = !allAnswered;
+                gradeBtn.textContent = 'Grade All Answers';
+                scoreDisplay.innerHTML = '';
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            document.getElementById('filter1').classList.remove('active');
+            document.getElementById('filter2').classList.remove('active');
+            document.getElementById('filterAll').classList.remove('active');
+            document.getElementById('filterAllIEEE').classList.remove('active');
+            
+            if (filter === 'common1') {
+                devices = mostCommonDevices.filter(d => commonSet1Numbers.includes(d.number));
+                document.getElementById('filter1').classList.add('active');
+            } else if (filter === 'common2') {
+                devices = mostCommonDevices.filter(d => commonSet2Numbers.includes(d.number));
+                document.getElementById('filter2').classList.add('active');
+            } else if (filter === 'allIEEE') {
+                devices = allIEEEDevices;
+                document.getElementById('filterAllIEEE').classList.add('active');
+            } else {
+                devices = mostCommonDevices;
+                document.getElementById('filterAll').classList.add('active');
+            }
+            
+            shuffleDevices();
+        }
+
+        function setRangeFilter() {
+            const start = parseInt(document.getElementById('rangeStart').value);
+            const end = parseInt(document.getElementById('rangeEnd').value);
+            
+            if (isNaN(start) || isNaN(end)) {
+                alert('Please enter valid numbers for both range fields');
+                return;
+            }
+            
+            if (start > end) {
+                alert('Start number must be less than or equal to end number');
+                return;
+            }
+            
+            currentFilter = 'range';
+            
+            document.getElementById('filter1').classList.remove('active');
+            document.getElementById('filter2').classList.remove('active');
+            document.getElementById('filterAll').classList.remove('active');
+            document.getElementById('filterAllIEEE').classList.remove('active');
+            
+            // Filter from current devices list (which reflects the custom list)
+            devices = devices.filter(d => {
+                const num = parseInt(d.number);
+                return num >= start && num <= end;
+            });
+            
+            if (devices.length === 0) {
+                alert('No devices found in this range');
+                setFilter('all');
+                return;
+            }
+            
+            shuffleDevices();
+        }
+
+        function setCustomListFilter() {
+            const customInput = document.getElementById('customList').value;
+            
+            if (!customInput.trim()) {
+                alert('Please enter device numbers separated by commas');
+                return;
+            }
+            
+            const requestedNumbers = customInput.split(',').map(n => n.trim()).filter(n => n);
+            
+            if (requestedNumbers.length === 0) {
+                alert('Please enter valid device numbers');
+                return;
+            }
+            
+            currentFilter = 'custom';
+            
+            document.getElementById('filter1').classList.remove('active');
+            document.getElementById('filter2').classList.remove('active');
+            document.getElementById('filterAll').classList.remove('active');
+            
+            devices = mostCommonDevices.filter(d => requestedNumbers.includes(d.number));
+            
+            if (devices.length === 0) {
+                alert('No matching devices found. Make sure you entered valid device numbers.');
+                setFilter('all');
+                return;
+            }
+            
+            shuffleDevices();
+        }
+
+        function renderDevices() {
+            const container = document.getElementById('devices-container');
+            container.innerHTML = '';
+
+            shuffledDevices.forEach((device) => {
+                const card = document.createElement('div');
+                card.className = 'device-card';
+
+                const name = document.createElement('div');
+                name.className = 'device-name';
+                name.textContent = device.name;
+                card.appendChild(name);
+
+                const choicesContainer = document.createElement('div');
+                choicesContainer.className = 'choices-container';
+
+                choices[device.number].forEach(choiceNum => {
+                    const choiceDiv = document.createElement('div');
+                    choiceDiv.className = 'choice';
+                    
+                    if (revealed[device.number]) {
+                        choiceDiv.classList.add('disabled');
+                        if (choiceNum === device.number) {
+                            choiceDiv.classList.add('correct');
+                        } else if (choiceNum === answers[device.number]) {
+                            choiceDiv.classList.add('incorrect');
+                        }
+                    } else if (answers[device.number] === choiceNum) {
+                        choiceDiv.classList.add('selected');
+                    }
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `device-${device.number}`;
+                    radio.value = choiceNum;
+                    radio.checked = answers[device.number] === choiceNum;
+                    radio.disabled = revealed[device.number];
+                    radio.addEventListener('change', () => handleAnswerChange(device.number, choiceNum));
+
+                    const label = document.createElement('label');
+                    label.className = 'choice-label';
+                    label.textContent = `Device ${choiceNum}`;
+                    label.addEventListener('click', () => {
+                        if (!revealed[device.number]) {
+                            handleAnswerChange(device.number, choiceNum);
+                        }
+                    });
+
+                    choiceDiv.appendChild(radio);
+                    choiceDiv.appendChild(label);
+                    choicesContainer.appendChild(choiceDiv);
+                });
+
+                card.appendChild(choicesContainer);
+
+                const buttonRow = document.createElement('div');
+                buttonRow.className = 'button-row';
+
+                const revealBtn = document.createElement('button');
+                revealBtn.className = 'reveal-btn';
+                revealBtn.textContent = revealed[device.number] ? 'Revealed' : 'Check Answer';
+                revealBtn.disabled = revealed[device.number] || !answers[device.number] || graded;
+                revealBtn.addEventListener('click', () => handleReveal(device.number));
+
+                const infoBtn = document.createElement('button');
+                infoBtn.className = 'info-btn';
+                infoBtn.textContent = descriptionVisible[device.number] ? 'Hide Info' : 'Show Info';
+                infoBtn.addEventListener('click', () => toggleDescription(device.number));
+
+                buttonRow.appendChild(revealBtn);
+                buttonRow.appendChild(infoBtn);
+                card.appendChild(buttonRow);
+
+                if (descriptionVisible[device.number]) {
+                    const desc = document.createElement('div');
+                    desc.className = 'description';
+                    desc.textContent = device.description;
+                    card.appendChild(desc);
+                }
+
+                if (revealed[device.number]) {
+                    const feedback = document.createElement('div');
+                    feedback.className = `feedback ${isCorrect(device.number) ? 'correct' : 'incorrect'}`;
+                    feedback.textContent = isCorrect(device.number) 
+                        ? `✓ Correct! Device ${device.number}`
+                        : `✗ Incorrect. The correct answer is Device ${device.number}`;
+                    card.appendChild(feedback);
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            updateRangeDisplay();
+            shuffleDevices();
+        });
+    </script>
+</body>
+</html>
